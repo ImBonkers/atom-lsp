@@ -1,25 +1,17 @@
 # atom-lsp
 
-Neovim plugin for the [Atom](https://github.com/ImBonkers/Atom) programming language. Provides syntax highlighting, filetype detection, and LSP support.
+Neovim plugin for the [Atom](https://github.com/ImBonkers/Atom) programming language. Provides syntax highlighting, filetype detection, and a built-in LSP server.
 
 ## Features
 
 - Syntax highlighting for `.atm` files
-- LSP integration: diagnostics, go-to-definition, hover, completions, references, rename, formatting, inlay hints
-- Comment string and indent settings
+- LSP: diagnostics, go-to-definition, hover, completions, references, rename, formatting, inlay hints
+- Auto-builds the LSP server from source on install — no manual setup
 
 ## Requirements
 
 - Neovim >= 0.10
-- `atom-lsp` binary on your `$PATH` (or specify the full path)
-
-Build it from the Atom repo:
-
-```bash
-cd /path/to/Atom
-make lsp
-cp build/atom-lsp ~/.local/bin/  # or anywhere on $PATH
-```
+- A C compiler (`cc`, `gcc`, or `clang`)
 
 ## Install with Lazy.nvim
 
@@ -27,30 +19,21 @@ cp build/atom-lsp ~/.local/bin/  # or anywhere on $PATH
 {
   "ImBonkers/atom-lsp",
   ft = "atom",
-  opts = {
-    -- cmd = { "/full/path/to/atom-lsp" },  -- if not on $PATH
-  },
-  config = function(_, opts)
-    require("atom-lsp").setup(opts)
+  build = "make",
+  config = function()
+    require("atom-lsp").setup()
   end,
 }
 ```
 
-## Manual setup (without plugin manager)
-
-```lua
--- in init.lua
-require("atom-lsp").setup({
-  cmd = { "/path/to/build/atom-lsp" },
-})
-```
+That's it. Lazy clones the repo (with submodules), runs `make` to compile the server, and the plugin auto-detects the binary.
 
 ## Configuration
 
 ```lua
 require("atom-lsp").setup({
-  -- Path to the LSP server binary (default: assumes on $PATH)
-  cmd = { "atom-lsp" },
+  -- Override the server binary (default: auto-detected from plugin dir)
+  -- cmd = { "/custom/path/to/atom-lsp" },
 
   -- Filetypes to attach to (default: { "atom" })
   filetypes = { "atom" },
@@ -60,17 +43,27 @@ require("atom-lsp").setup({
 })
 ```
 
+## Commands
+
+| Command | Description |
+|---|---|
+| `:AtomLspBuild` | Rebuild the LSP server from source (after updating the plugin) |
+
 ## LSP Capabilities
 
-| Feature | Keybind (suggested) | LSP Method |
+| Feature | Keybind | LSP Method |
 |---|---|---|
 | Diagnostics | automatic | `textDocument/publishDiagnostics` |
 | Go to definition | `gd` | `textDocument/definition` |
 | Hover | `K` | `textDocument/hover` |
 | References | `gr` | `textDocument/references` |
-| Rename | `<leader>rn` | `textDocument/rename` |
+| Rename | `grn` | `textDocument/rename` |
 | Completions | `<C-Space>` | `textDocument/completion` |
-| Format | `<leader>f` | `textDocument/formatting` |
+| Format | `gq` | `textDocument/formatting` |
 | Inlay hints | automatic | `textDocument/inlayHint` |
 
-These keybinds are Neovim's LSP defaults (0.10+). No extra mapping needed.
+Keybinds are Neovim's built-in LSP defaults (0.10+). No extra mappings needed.
+
+## Updating
+
+When you update the plugin (`:Lazy update atom-lsp`), the `build = "make"` step recompiles the server automatically. You can also run `:AtomLspBuild` manually at any time.
