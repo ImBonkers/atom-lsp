@@ -4,21 +4,16 @@ local M = {}
 local plugin_dir = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":h:h:h")
 local default_bin = plugin_dir .. "/bin/atom-lsp"
 
-M.defaults = {
-  cmd = nil, -- auto-detected from plugin dir
-  filetypes = { "atom" },
-  root_markers = { ".git", "Makefile" },
-}
-
 function M.setup(opts)
-  opts = vim.tbl_deep_extend("force", M.defaults, opts or {})
+  opts = opts or {}
 
-  -- Use bundled binary if no explicit cmd and the binary exists
-  if not opts.cmd then
+  -- Resolve server binary: explicit cmd > bundled binary > $PATH
+  local cmd = opts.cmd
+  if not cmd then
     if vim.fn.executable(default_bin) == 1 then
-      opts.cmd = { default_bin }
+      cmd = { default_bin }
     elseif vim.fn.executable("atom-lsp") == 1 then
-      opts.cmd = { "atom-lsp" }
+      cmd = { "atom-lsp" }
     else
       vim.notify(
         "[atom-lsp] Server binary not found. Run :AtomLspBuild or add atom-lsp to $PATH",
@@ -28,7 +23,7 @@ function M.setup(opts)
     end
   end
 
-  -- :AtomLspBuild command to compile the server
+  -- :AtomLspBuild command
   vim.api.nvim_create_user_command("AtomLspBuild", function()
     vim.notify("[atom-lsp] Building server...", vim.log.levels.INFO)
     vim.fn.jobstart({ "make", "-C", plugin_dir }, {
@@ -42,19 +37,37 @@ function M.setup(opts)
     })
   end, { desc = "Build the atom-lsp server from source" })
 
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = opts.filetypes,
-    callback = function(ev)
-      local root = vim.fs.root(ev.buf, opts.root_markers) or vim.fn.getcwd()
+  -- Register with lspconfig
+  local ok, configs = pcall(require, "lspconfig.configs")
+  if not ok then
+    vim.notify("[atom-lsp] nvim-lspconfig not found, falling back to vim.lsp.start", vim.log.levels.WARN)
+    -- Fallback: raw vim.lsp.start
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "atom",
+      callback = function(ev)
+        local root = vim.fs.root(ev.buf, { ".git", "Makefile" }) or vim.fn.getcwd()
+        vim.lsp.start({
+          name = "atom-lsp",
+          cmd = cmd,
+          root_dir = root,
+        })
+      end,
+    })
+    return
+  end
 
-      vim.lsp.start({
-        name = "atom-lsp",
-        cmd = opts.cmd,
-        root_dir = root,
-        capabilities = vim.lsp.protocol.make_client_capabilities(),
-      })
-    end,
-  })
+  if not configs.atom_lsp then
+    configs.atom_lsp = {
+      default_config = {
+        cmd = cmd,
+        filetypes = { "atom" },
+        root_dir = require("lspconfig.util").root_pattern(".git", "Makefile"),
+        settings = {},
+      },
+    }
+  end
+
+  require("lspconfig").atom_lsp.setup(opts.lspconfig or {})
 end
 
 return M
