@@ -37,37 +37,14 @@ function M.setup(opts)
     })
   end, { desc = "Build the atom-lsp server from source" })
 
-  -- Register with lspconfig
-  local ok, configs = pcall(require, "lspconfig.configs")
-  if not ok then
-    vim.notify("[atom-lsp] nvim-lspconfig not found, falling back to vim.lsp.start", vim.log.levels.WARN)
-    -- Fallback: raw vim.lsp.start
-    vim.api.nvim_create_autocmd("FileType", {
-      pattern = "atom",
-      callback = function(ev)
-        local root = vim.fs.root(ev.buf, { ".git", "Makefile" }) or vim.fn.getcwd()
-        vim.lsp.start({
-          name = "atom-lsp",
-          cmd = cmd,
-          root_dir = root,
-        })
-      end,
-    })
-    return
-  end
+  -- Register with vim.lsp.config + vim.lsp.enable (Neovim 0.11+)
+  vim.lsp.config("atom_lsp", vim.tbl_deep_extend("force", {
+    cmd = cmd,
+    filetypes = { "atom" },
+    root_markers = { ".git", "Makefile" },
+  }, opts.config or {}))
 
-  if not configs.atom_lsp then
-    configs.atom_lsp = {
-      default_config = {
-        cmd = cmd,
-        filetypes = { "atom" },
-        root_dir = require("lspconfig.util").root_pattern(".git", "Makefile"),
-        settings = {},
-      },
-    }
-  end
-
-  require("lspconfig").atom_lsp.setup(opts.lspconfig or {})
+  vim.lsp.enable("atom_lsp")
 end
 
 return M
