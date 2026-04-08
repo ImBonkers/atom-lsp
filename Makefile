@@ -9,6 +9,9 @@ all: bin/atom-lsp
 bin/atom-lsp: $(SRC) | bin
 	$(CC) $(CFLAGS) $(SRC) -o $@ -lm
 
+$(SRC):
+	git -C "$(CURDIR)" submodule update --init --recursive
+
 bin:
 	mkdir -p bin
 
