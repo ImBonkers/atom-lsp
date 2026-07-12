@@ -5,7 +5,7 @@ Neovim plugin for the [Atom](https://github.com/ImBonkers/Atom) programming lang
 ## Features
 
 - Syntax highlighting for `.atm` files — keywords, structs, generics, `match`, template literals (`` `${…}` ``), type annotations, and the Result/Promise builtins
-- LSP: diagnostics, go-to-definition, hover, completions, references, rename, formatting, inlay hints, and quick-fix code actions
+- LSP: diagnostics, go-to-definition, hover, completions, references, rename, formatting, inlay hints, quick-fix code actions, and semantic tokens (compiler-accurate highlighting of parameters, locals, types, properties, etc.)
 - Uses `vim.lsp.config` / `vim.lsp.enable` (Neovim 0.11+)
 - Auto-builds the server from source on install
 
@@ -58,6 +58,7 @@ require("atom-lsp").setup({
 | Rename | `textDocument/rename` |
 | Completions | `textDocument/completion` |
 | Code actions (quick fixes) | `textDocument/codeAction` |
+| Semantic tokens | `textDocument/semanticTokens/full` |
 | Format | `textDocument/formatting` |
 | Inlay hints | `textDocument/inlayHint` |
 
