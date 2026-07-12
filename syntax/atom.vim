@@ -115,8 +115,8 @@ highlight default link atomConditional   Conditional
 highlight default link atomRepeat        Repeat
 highlight default link atomStatement      Statement
 highlight default link atomModule        Include
-highlight default link atomAsync         Keyword
-highlight default link atomKeyword       Keyword
+highlight default link atomAsync         Statement
+highlight default link atomKeyword       Statement
 highlight default link atomBoolean       Boolean
 highlight default link atomNull          Constant
 highlight default link atomType          Type
