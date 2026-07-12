@@ -41,7 +41,8 @@ function M.setup(opts)
   vim.lsp.config("atom_lsp", vim.tbl_deep_extend("force", {
     cmd = cmd,
     filetypes = { "atom" },
-    root_markers = { ".git", "Makefile" },
+    -- atom.json / atom.lock are Atom's package manifest + lockfile.
+    root_markers = { "atom.json", "atom.lock", ".git", "Makefile" },
   }, opts.config or {}))
 
   vim.lsp.enable("atom_lsp")
