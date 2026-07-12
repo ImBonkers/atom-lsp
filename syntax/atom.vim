@@ -10,19 +10,21 @@ endif
 " ─── Keywords ─────────────────────────────────────────────────────────────
 " Hard keywords come straight from the lexer's `keywords[]` table; `type`,
 " `from`, `is`, and `extends` are contextual keywords the parser recognises in
-" type/import positions.
-syntax keyword atomStorage      var const
+" type/import positions. Groups mirror the tree-sitter capture granularity so
+" the colors match (see the highlight links at the bottom).
+syntax keyword atomKeyword      var const break
 syntax keyword atomConditional  if else match
-syntax keyword atomRepeat       while for in
-syntax keyword atomStatement    return break continue
-syntax keyword atomModule       import export from
-syntax keyword atomAsync        async await
-syntax keyword atomKeyword      this typeof is asserts extends
+syntax keyword atomRepeat       while for in continue
+syntax keyword atomReturn       return
+syntax keyword atomImport       import export from
+syntax keyword atomCoroutine    async await
+syntax keyword atomKwOperator   typeof is asserts extends
+syntax keyword atomThis         this
 " Declaration keywords carry the following name via nextgroup — a plain `\zs`
 " match would be clobbered because these words are themselves keywords.
-syntax keyword atomKeyword      fn     skipwhite nextgroup=atomFuncName
-syntax keyword atomKeyword      struct skipwhite nextgroup=atomStructName
-syntax keyword atomKeyword      type   skipwhite nextgroup=atomTypeName
+syntax keyword atomKwFunction   fn     skipwhite nextgroup=atomFuncName
+syntax keyword atomKwType       struct skipwhite nextgroup=atomStructName
+syntax keyword atomKwType       type   skipwhite nextgroup=atomTypeName
 
 " ─── Constants ────────────────────────────────────────────────────────────
 syntax keyword atomBoolean      true false
@@ -105,36 +107,44 @@ syntax match atomOperator '>>'
 
 " ─── Interpolation expression cluster ─────────────────────────────────────
 syntax cluster atomExpr contains=atomNumber,atomString,atomTemplate,atomBoolean,
-      \atomNull,atomStorage,atomConditional,atomRepeat,atomStatement,atomModule,
-      \atomAsync,atomKeyword,atomType,atomBuiltin,atomNamespace,atomMethod,
-      \atomFuncName,atomOperator,atomLineComment,atomBlockComment
+      \atomNull,atomKeyword,atomConditional,atomRepeat,atomReturn,atomImport,
+      \atomCoroutine,atomKwOperator,atomThis,atomKwFunction,atomKwType,atomType,
+      \atomBuiltin,atomNamespace,atomMethod,atomFuncName,atomOperator,
+      \atomLineComment,atomBlockComment
 
 " ─── Highlight links ──────────────────────────────────────────────────────
-highlight default link atomStorage       StorageClass
-highlight default link atomConditional   Conditional
-highlight default link atomRepeat        Repeat
-highlight default link atomStatement      Statement
-highlight default link atomModule        Include
-highlight default link atomAsync         Statement
-highlight default link atomKeyword       Statement
-highlight default link atomBoolean       Boolean
-highlight default link atomNull          Constant
-highlight default link atomType          Type
-highlight default link atomStructName    Type
-highlight default link atomTypeName      Type
-highlight default link atomBuiltin       Function
-highlight default link atomNamespace     Structure
-highlight default link atomNumber        Number
-highlight default link atomString        String
-highlight default link atomTemplate      String
-highlight default link atomTemplateQuote String
-highlight default link atomTemplateDelim Special
-highlight default link atomEscape        SpecialChar
-highlight default link atomLineComment   Comment
-highlight default link atomBlockComment  Comment
-highlight default link atomTodo          Todo
-highlight default link atomFuncName      Function
-highlight default link atomMethod        Function
-highlight default link atomOperator      Operator
+" Linked to Neovim's tree-sitter capture groups so the palette matches the
+" tree-sitter-atom highlighting exactly, and tracks whatever colorscheme is
+" active. Neovim provides sensible fallbacks for any capture a colorscheme
+" doesn't define.
+highlight default link atomKeyword       @keyword
+highlight default link atomConditional   @keyword.conditional
+highlight default link atomRepeat        @keyword.repeat
+highlight default link atomReturn        @keyword.return
+highlight default link atomImport        @keyword.import
+highlight default link atomCoroutine     @keyword.coroutine
+highlight default link atomKwOperator    @keyword.operator
+highlight default link atomKwFunction    @keyword.function
+highlight default link atomKwType        @keyword.type
+highlight default link atomThis          @variable.builtin
+highlight default link atomBoolean       @boolean
+highlight default link atomNull          @constant.builtin
+highlight default link atomType          @type
+highlight default link atomStructName    @type
+highlight default link atomTypeName      @type
+highlight default link atomFuncName      @function
+highlight default link atomMethod        @function.method.call
+highlight default link atomBuiltin       @function.builtin
+highlight default link atomNamespace     @module.builtin
+highlight default link atomNumber        @number
+highlight default link atomString        @string
+highlight default link atomTemplate      @string
+highlight default link atomTemplateQuote @string
+highlight default link atomTemplateDelim @punctuation.special
+highlight default link atomEscape        @string.escape
+highlight default link atomLineComment   @comment
+highlight default link atomBlockComment  @comment
+highlight default link atomTodo          @comment.todo
+highlight default link atomOperator      @operator
 
 let b:current_syntax = 'atom'
