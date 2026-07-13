@@ -9,20 +9,24 @@ endif
 
 " ─── Keywords ─────────────────────────────────────────────────────────────
 " Hard keywords come straight from the lexer's `keywords[]` table; `type`,
-" `from`, `is`, and `extends` are contextual keywords the parser recognises in
+" `from`, and `extends` are contextual keywords the parser recognises in
 " type/import positions. Groups mirror the tree-sitter capture granularity so
 " the colors match (see the highlight links at the bottom).
-syntax keyword atomKeyword      var const break
+syntax keyword atomKeyword      break
 syntax keyword atomConditional  if else match
 syntax keyword atomRepeat       while for in continue
 syntax keyword atomReturn       return
 syntax keyword atomImport       import export from
 syntax keyword atomCoroutine    async await
-syntax keyword atomKwOperator   typeof is asserts extends
+syntax keyword atomKwOperator   typeof extends
 syntax keyword atomThis         this
-" Declaration keywords carry the following name via nextgroup — a plain `\zs`
-" match would be clobbered because these words are themselves keywords.
-syntax keyword atomKwFunction   fn     skipwhite nextgroup=atomFuncName
+" `var` / `const` lead a declaration; the following name is a function name
+" only when it precedes `(` / a generic `<` (an inferred-return function like
+" `var f() {}`), otherwise it is a plain variable and stays default.
+syntax keyword atomKeyword      var const skipwhite nextgroup=atomFuncName
+" `fn` is the lambda keyword only (`fn(...)`); named functions are type-first
+" (`RET name(...)`) or `var name(...)`, so `fn` never leads a name.
+syntax keyword atomKwFunction   fn
 syntax keyword atomKwType       struct skipwhite nextgroup=atomStructName
 syntax keyword atomKwType       type   skipwhite nextgroup=atomTypeName
 
@@ -33,7 +37,10 @@ syntax keyword atomNull         nil
 " ─── Built-in type names ──────────────────────────────────────────────────
 " Highlighted anywhere they appear (annotation positions can't be reliably
 " distinguished from object-literal keys, so this is intentionally lexical).
-syntax keyword atomType         number string bool any never object Object array Array Promise Result
+" A type that leads a declaration chains into the function name via nextgroup
+" (`number fib(...)` -> `fib` is a function); when the next name isn't followed
+" by `(`/`<` the funcname match fails and the name (a variable) stays default.
+syntax keyword atomType         number string bool any never object Object array Array Promise Result skipwhite nextgroup=atomFuncName
 
 " ─── Built-in globals ─────────────────────────────────────────────────────
 " Bare-callable functions the runtime registers (capability-gated at runtime).
@@ -78,10 +85,15 @@ syntax match  atomLineComment  '//.*$' contains=atomTodo
 syntax region atomBlockComment start='/\*' end='\*/' contains=atomTodo
 
 " ─── Declaration names ────────────────────────────────────────────────────
-" Reached via nextgroup from `fn` / `struct` / `type` (see above). `fn(` and
-" `type(x)` have no whitespace-separated name, so the name match simply fails
-" and the keyword stands alone.
-syntax match atomFuncName   '\h\w*' contained
+" atomFuncName is reached via nextgroup from `var` / `const` / a built-in type
+" keyword; it matches only a name that precedes `(` or a generic `<`, so a
+" plain variable name (`var x = 5`, `number n = 42`) is left untouched. A
+" function whose return type is a user type or generic (`Result<...> f()`)
+" can't be detected by regex, so its name stays default (the regex gap).
+" atomStructName / atomTypeName are reached from `struct` / `type`, which
+" always lead with a name; `type(x)` has no whitespace-separated name, so the
+" match simply fails and the keyword stands alone.
+syntax match atomFuncName   '\h\w*\ze\s*[(<]' contained
 syntax match atomStructName '\h\w*' contained
 syntax match atomTypeName   '\h\w*' contained
 
