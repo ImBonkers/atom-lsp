@@ -63,8 +63,9 @@ syntax match atomNumber '\<0[oO][0-7_]\+\>'
 
 " ─── Escape sequences ─────────────────────────────────────────────────────
 " `\`` and `\$` are template escapes; the single-quoted pattern writes a
-" literal quote as `''`.
-syntax match atomEscape '\\[nrtabfv0\\"''`$]' contained
+" literal quote as `''`. `\0` is deliberately absent: NUL-producing escapes
+" are a lex error in Atom (embedded-NUL rule), so it must not read as valid.
+syntax match atomEscape '\\[nrtabfv\\"''`$]' contained
 syntax match atomEscape '\\x[0-9a-fA-F]\{2}' contained
 syntax match atomEscape '\\u[0-9a-fA-F]\{4}' contained
 
