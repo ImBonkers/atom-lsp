@@ -11,8 +11,10 @@ SRC := atom/src/lsp_main.c
 
 all: bin/atom-lsp
 
+# Bake the vendored stdlib path in so `std/...` imports resolve and the
+# import-path completion can list the std modules ($ATOM_STD_PATH overrides).
 bin/atom-lsp: $(SRC) | bin
-	$(CC) $(CFLAGS) $(SRC) -o $@ -lm
+	$(CC) $(CFLAGS) -DATOM_DEFAULT_STD_PATH='"$(CURDIR)/atom/std"' $(SRC) -o $@ -lm
 
 $(SRC):
 	git clone --depth 1 $(REPO) atom
